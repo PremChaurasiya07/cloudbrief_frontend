@@ -62,7 +62,8 @@ const Gmail = () => {
 
       if (!response.ok) throw new Error("Failed to refresh access token.");
       const data = await response.json();
-      return data.accessToken;
+      console.log("New access token:", data.accessToken);
+      return data.access_token;
     } catch (error) {
       console.error("Error refreshing access token:", error);
       return null;
@@ -78,33 +79,47 @@ const Gmail = () => {
       const nowUTC = Date.now();
       const expiryUTC = new Date(account.token_expiry).getTime();
   
-      // Refresh token if expired
+      // 🔁 Refresh token if expired
       if (expiryUTC <= nowUTC) {
         const newAccessToken = await refreshAccessToken(account.refresh_token);
         if (newAccessToken) {
-          // Update access token in Supabase
+          // ✅ Update token in Supabase
           await supabase
             .from("email_auth")
             .update({
               access_token: newAccessToken,
-              token_expiry: new Date(Date.now() + 3600 * 1000), // Set new expiry time (1 hour)
+              token_expiry: new Date(Date.now() + 3600 * 1000).toISOString(),
             })
             .eq("gmail_id", account.gmail_id);
-          accessToken = newAccessToken;
+  
+          // ✅ Refetch account from Supabase to get updated access token
+          const { data: updatedAccount, error: updateError } = await supabase
+            .from("email_auth")
+            .select("*")
+            .eq("gmail_id", account.gmail_id)
+            .single();
+  
+          if (updateError || !updatedAccount) {
+            console.error("Failed to re-fetch updated account from Supabase.");
+            setIsFetching(false);
+            return;
+          }
+  
+          account = updatedAccount;
+          accessToken = updatedAccount.access_token;
         } else {
           console.error(`Could not refresh token for ${account.gmail_id}`);
-          setIsFetching(false); // Ensure fetching flag is updated
+          setIsFetching(false);
           return;
         }
       }
   
-      // Check cache (use cache for better performance)
+      // 🧠 Check local cache
       const lastFetchKey = `last_fetch_${account.gmail_id}`;
       const lastFetch = localStorage.getItem(lastFetchKey);
       const lastFetchTime = lastFetch ? parseInt(lastFetch, 10) : 0;
   
       if (Date.now() - lastFetchTime > FETCH_CACHE_DURATION) {
-        // Only fetch from Gmail API if not recently fetched
         const fetchRes = await fetch("http://localhost:3000/api/auth/gmail/fetch", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -115,7 +130,7 @@ const Gmail = () => {
         localStorage.setItem(lastFetchKey, Date.now().toString());
       }
   
-      // Always pull messages from your database
+      // 📥 Pull messages from Supabase (your DB)
       const res = await fetch("http://localhost:3000/api/auth/gmail/getmails", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -129,8 +144,8 @@ const Gmail = () => {
   
       const data: EmailMessage[] = await res.json();
       if (!data || data.length === 0) {
-        setMessages([]);  // Clear messages if none found
-        setIsFetching(false);  // Ensure fetching state is updated
+        setMessages([]);
+        setIsFetching(false);
         return;
       }
   
@@ -148,14 +163,15 @@ const Gmail = () => {
         status: msg.status || "new",
       }));
   
-      setMessages(mapped);  // Set messages after fetching
-      setIsFetching(false);  // Update fetching state
+      setMessages(mapped);
+      setIsFetching(false);
     } catch (err) {
       console.error("Fetch error:", err);
       setError("Failed to fetch messages.");
-      setIsFetching(false);  // Ensure fetching state is updated on error
+      setIsFetching(false);
     }
   };
+  
   
 
 
