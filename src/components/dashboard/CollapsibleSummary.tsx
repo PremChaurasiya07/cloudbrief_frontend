@@ -165,8 +165,8 @@ export function CollapsibleSummary() {
         <div
           className={`transition-all duration-300 ease-in-out ${
             isCollapsed
-              ? "max-h-[100px] overflow-hidden"
-              : "max-h-[500px] overflow-y-scroll"
+              ? "min-h-[80px] overflow-hidden"
+              : "max-h-[100px] overflow-y-scroll"
           }`}
         >
           {isLoading ? (

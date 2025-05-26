@@ -18,12 +18,16 @@ import NotFound from "./pages/NotFound";
 import Conversation from "./pages/Conversation";
 import EmailView from "./pages/Gmail_conver";
 import HybridCalendar from "./pages/HybridCalendar";
+import { User } from "lucide-react";
+import { UserCredProvider } from "./context/usercred";
+import { useState } from "node_modules/react-resizable-panels/dist/declarations/src/vendor/react";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
+      <UserCredProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -45,6 +49,7 @@ const App = () => (
           </PageContainer>
         </BrowserRouter>
       </TooltipProvider>
+      </UserCredProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
