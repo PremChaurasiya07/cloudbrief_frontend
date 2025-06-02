@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { format, isSameDay } from "date-fns";
 import History from "@/langflow/gethistory";
 
+
 interface Message {
   id: string;
   content: string;
@@ -28,6 +29,7 @@ export function ChatInterface() {
       return text;
     }
   };
+  const userid="00000000-0000-0000-0000-000000000001";
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,9 +60,10 @@ export function ChatInterface() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: input }),
       });
+      console.log("Response status:", response);
 
       const data = await response.json();
-     console.log
+     console.log(data);
       const output = data.outputs[0].outputs[0].results.message.data.text || "No response from assistant.";
       console.log("Assistant output:", output);
 
@@ -153,7 +156,7 @@ export function ChatInterface() {
               : "mr-auto bg-muted max-w-[80%]"
           }`}
         >
-          {decodeUnicode(message.content)}
+          {message.content}
         </Card>
       );
     });

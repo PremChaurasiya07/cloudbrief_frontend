@@ -11,38 +11,31 @@ const Callback = () => {
   const {userdata, setuserdata} = useUserCred(); // Assuming you have a context or state management for user data
 
   // Encrypt and store user_id in sessionStorage
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      console.log("Session data:", data); // Log session data for debugging
-      setuserdata(data); // Set user ID in context or state
-      if (error) {
-        console.error("Error fetching session:", error.message);
-      } else {
-        const userId = data.session.user.id;
-        console.log("Session id:", userId);
-        
-        // Encrypt the user_id before storing it in sessionStorage
-        const encryptedUserId = CryptoJS.AES.encrypt(userId, SECRET_KEY).toString();
-        sessionStorage.setItem('user_id', encryptedUserId);
+ useEffect(() => {
+  const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" && session) {
+      const userId = session.user.id;
+      setuserdata(session);
 
-        // Decrypt the user_id when retrieved from sessionStorage
-        const encryptedStoredUserId = sessionStorage.getItem('user_id');
-        if (encryptedStoredUserId) {
-          const bytes = CryptoJS.AES.decrypt(encryptedStoredUserId, SECRET_KEY);
-          const decryptedUserId = bytes.toString(CryptoJS.enc.Utf8); // Decrypt the user_id
-          console.log("Decrypted User ID:", decryptedUserId); // Log decrypted user ID
-        } else {
-          console.error("No user_id found in sessionStorage.");
-        }
+      const encryptedUserId = CryptoJS.AES.encrypt(userId, SECRET_KEY).toString();
+      sessionStorage.setItem("user_id", encryptedUserId);
 
-        // Redirect after successful login
-        navigate("/");  // Redirect to home or any other page after successful login
+      const encryptedStoredUserId = sessionStorage.getItem("user_id");
+      if (encryptedStoredUserId) {
+        const bytes = CryptoJS.AES.decrypt(encryptedStoredUserId, SECRET_KEY);
+        const decryptedUserId = bytes.toString(CryptoJS.enc.Utf8);
+        console.log("Decrypted User ID:", decryptedUserId);
       }
-    };
 
-    checkSession();
-  }, [navigate]);
+      navigate("/");
+    }
+  });
+
+  return () => {
+    listener?.subscription.unsubscribe(); // Cleanup on unmount
+  };
+}, [navigate]);
+
 
   return <p className="text-white text-center mt-10">Signing in...</p>;
 };

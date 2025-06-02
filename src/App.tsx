@@ -9,7 +9,7 @@ import Callback from "./pages/Callback";
 import Login from "./pages/Login";
 import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
 import Index from "./pages/Index";
-import WhatsApp from "./pages/WhatsApp";
+// import WhatsApp from "./pages/WhatsApp";
 import Gmail from "./pages/Gmail";
 import Twitter from "./pages/Twitter";
 import LinkedIn from "./pages/LinkedIn";
@@ -37,7 +37,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
               <Route path="/callback" element={<Callback />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/whatsapp" element={<ProtectedRoute><WhatsApp /></ProtectedRoute>} />
+              {/* <Route path="/whatsapp" element={<ProtectedRoute><WhatsApp /></ProtectedRoute>} /> */}
               <Route path="/gmail" element={<ProtectedRoute><Gmail /></ProtectedRoute>} />
               <Route path="/gmail/:id" element={<ProtectedRoute><EmailView /></ProtectedRoute>} />
               <Route path="/twitter" element={<ProtectedRoute><HybridCalendar /></ProtectedRoute>} />

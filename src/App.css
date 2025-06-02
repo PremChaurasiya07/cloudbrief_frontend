@@ -1,8 +1,17 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+} */
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* This is crucial to prevent native browser scrollbars */
+  box-sizing: border-box; /* Good practice for consistent box model */
 }
 /* Custom thin scrollbar */
 .scrollbar-thin::-webkit-scrollbar {
