@@ -13,6 +13,7 @@ import clsx from 'clsx';
 import { supabase } from '@/lib/supabase';
 import { redirect } from 'react-router-dom';
 import { title } from 'process';
+import { useUserCred } from '@/context/usercred';
 
 const getColorFromEmail = (email: string) => {
   const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500'];
@@ -39,7 +40,8 @@ export default function CalendarPage() {
     includeMeetLink: false,
   });
   const [invalidEmails, setInvalidEmails] = useState<string[]>([]);
-  const userId = '00000000-0000-0000-0000-000000000001';
+  const {userid}=useUserCred();
+  const userId = userid;
 
   const fetchEmails = async () => {
     const { data, error } = await supabase

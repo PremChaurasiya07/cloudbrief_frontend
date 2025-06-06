@@ -17,6 +17,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "@/context/ThemeContext"; // Import useTheme
 import ComposeEmailModal from "@/components/mail/ComposeEmailModal"; // Import the modal component
+import { useUserCred } from "@/context/usercred";
 
 interface EmailAuthData {
   gmail_id: string;
@@ -35,15 +36,14 @@ interface EmailMessage extends Message {
 
 // const userid="00000000-0000-0000-0000-000000000001"; // Using USER_ID constant
 type MessageCategory =
+  | "ALL MAIL"
   | "INBOX"
   | "STARRED"
   | "DRAFT"
   | "SENT"
-  | "ALL_MAIL"
   | "SOCIAL"
   | "PROMOTIONS";
 
-const USER_ID = "00000000-0000-0000-0000-000000000001";
 const FETCH_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const Gmail = () => {
@@ -58,19 +58,21 @@ const Gmail = () => {
     useState<MessageCategory>("INBOX");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [open, setOpen] = useState(false); // For ComposeEmailModal
+  const {userid}=useUserCred()
+  const USER_ID = userid;
 
   const { theme } = useTheme(); // Use the theme hook
 
   const categories = [
+    { name: "All Mail", icon: Archive, id: "ALL MAIL" as MessageCategory },
     { name: "Inbox", icon: Inbox, id: "INBOX" as MessageCategory },
     { name: "Starred", icon: Star, id: "STARRED" as MessageCategory },
     { name: "Drafts", icon: FileText, id: "DRAFT" as MessageCategory },
     { name: "Sent", icon: Send, id: "SENT" as MessageCategory },
-    { name: "All Mail", icon: Archive, id: "ALL_MAIL" as MessageCategory },
     { name: "Social", icon: Users, id: "SOCIAL" as MessageCategory },
     { name: "Promotions", icon: Tag, id: "PROMOTIONS" as MessageCategory },
   ];
-
+console.log("selected:",selectedCategory)
   const currentCategory =
     categories.find((cat) => cat.id === selectedCategory) || categories[0];
 
@@ -118,6 +120,58 @@ const Gmail = () => {
         return "Invalid Date";
     }
   };
+
+  const All_mail=async()=>{
+    setLoading(true)
+    try{
+        const res = await fetch("http://localhost:3000/api/auth/gmail/getallmail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: USER_ID,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Failed to fetch synced messages from backend: ${res.status} - ${errorText}`);
+      }
+
+      const data: EmailMessage[] = await res.json();
+      if (!data || data.length === 0) {
+        setMessages([]);
+        // setError(`No messages found for ${selectedCategory}.`); // Optional: inform user
+        setIsFetching(false);
+        return;
+      }
+
+      const sorted = data.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      const mapped: Message[] = sorted.map((msg) => ({
+        id: msg.id,
+        date: formatDate(msg.created_at),
+        sender: msg.sender,
+        platform: "gmail",
+        subject: msg.subject || "No Subject",
+        message: (msg as any).content || (msg as any).body || "", // Handle both 'content' and 'body'
+        status: msg.status || "new",
+        chat_id: msg.chat_id,
+        starred: msg.starred, // Assuming 'starred' is a property in your EmailMessage
+      }));
+
+      setMessages(mapped);
+      setLoading(false)
+    } catch (err: any) {
+      console.error("Fetch error in fetchMessagesForAccount:", err);
+      setError(`Failed to fetch messages: ${err.message || "Unknown error"}.`);
+      setMessages([]); // Ensure messages are cleared on error
+    } finally {
+      setIsFetching(false);
+    }
+  }
 
   const Drafts = async () => {
   if (!cred_data || !cred_data.refresh_token) {
@@ -469,6 +523,7 @@ const Gmail = () => {
         setEmailAccounts(data as EmailAuthData[]);
         if (data.length > 0) {
           const firstAccount = data[0] as EmailAuthData;
+          console.log(firstAccount.gmail_id)
           setSelectedGmailId(firstAccount.gmail_id);
           localStorage.setItem("selected_gmail_id", selectedGmailId);
           setcred_data(firstAccount);
@@ -496,21 +551,34 @@ const Gmail = () => {
       fetchstarred(cred_data);
 
     }
-     else if (selectedCategory !== "DRAFT") {
+    else if (selectedCategory === "ALL MAIL" ){
+      All_mail()
+    }
+    else if (selectedCategory !== "DRAFT") {
         fetchMessagesForAccount(cred_data);
-      }
+    }
       // If selectedCategory is DRAFT, it's handled by handleCategoryChange calling Drafts()
     }
   }, [selectedGmailId, selectedCategory, cred_data]); // Re-fetch if account, category or cred_data changes
 
-  const handleLoginRedirect = () => {
-    window.location.href = "http://localhost:3000/api/auth/gmail/";
-  };
+const handleLoginRedirect = () => {
+  // Get the user id from sessionStorage
+  const userid = sessionStorage.getItem("user_data");
+
+  if (!userid) {
+    console.error("No user ID found in sessionStorage");
+    return; // Or handle the error (show message, redirect to login, etc.)
+  }
+
+  // Redirect to Gmail auth endpoint with userid as encoded state param
+  window.location.href = `http://localhost:3000/api/auth/gmail/?state=${encodeURIComponent(userid)}`;
+};
+
 
   const handleAvatarClick = async (account: EmailAuthData) => {
      
     setSelectedGmailId(account.gmail_id);
-    localStorage.setItem("selected_gmail_id", selectedGmailId);
+    sessionStorage.setItem("selected_gmail_id", selectedGmailId);
     setcred_data(account); // Update cred_data to the selected account
     setSelectedCategory("INBOX"); // Default to INBOX, useEffect will trigger fetch
     // setMessages([]); // Clear messages immediately for responsiveness
@@ -732,6 +800,7 @@ const Gmail = () => {
               cred_data={cred_data}
               title={selectedCategory} // Or currentCategory.name
               icon={<currentCategory.icon size={20} />}
+              fetchallmail={ () => All_mail()}
               fecthmessagesForAccount={cred_data ? () => fetchMessagesForAccount(cred_data) : undefined}
               fetchdraft={() => Drafts()}
               fetchstarred={() => fetchstarred(cred_data)}

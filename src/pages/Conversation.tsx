@@ -9,6 +9,8 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { supabase } from '@/lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
+import { useUserCred } from '@/context/usercred';
+import { decryptMessage } from '../lib/security';
 
 // Extend the Contact interface to include a profile image URL
 interface Contact {
@@ -32,7 +34,6 @@ type ConnectionStatus = 'inactive' | 'connecting' | 'qr_pending' | 'connected' |
 
 const WS_SERVER_URL = 'ws://localhost:8081';
 const API_BASE_URL = 'http://localhost:3000/api/auth';
-const USER_ID = '00000000-0000-0000-0000-000000000001'; // <--- IMPORTANT: Ensure this matches!
 
 const Conversation = () => {
     const { platform } = useParams<{ platform: string }>();
@@ -50,6 +51,10 @@ const Conversation = () => {
     const [connectionMessage, setConnectionMessage] = useState<string | null>(null);
     const [newMessage, setNewMessage] = useState<string>('');
     const [currentPlatformId, setCurrentPlatformId] = useState<string | null>(null);
+
+    const { userid } = useUserCred();
+    console.log(userid)
+    const USER_ID = userid; 
 
     const getPlatformEmoji = (platform: string | undefined) => {
         switch (platform) {
@@ -229,7 +234,7 @@ const Conversation = () => {
     // Effect to fetch messages and profile picture when selectedContact changes
     useEffect(() => {
         if (selectedContact && platform === 'whatsapp') {
-            fetchMessages(selectedContact.id, selectedContact.name);
+            fetchMessages(USER_ID,selectedContact.chat_id, selectedContact.name,selectedContact.isGroup);
             // fetchProfilePicture(selectedContact.chat_id); // Fetch profile picture for selected contact
         } else if (platform === 'whatsapp' && connectionStatus !== 'connected') {
             setMessages([]);
@@ -332,7 +337,9 @@ const Conversation = () => {
         }
     }, [platform, connectionStatus, selectedContact]);
 
-    const fetchMessages = async (contactId: string, name: string) => {
+    const fetchMessages = async (USER_ID:string,chat_id: string, name: string,isgroup:boolean) => {
+        
+        setMessages([])
         if (!USER_ID || platform !== 'whatsapp') {
             console.log("Skipping message fetch: Not connected to WhatsApp or no user ID.");
             setMessages([]);
@@ -344,14 +351,16 @@ const Conversation = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ userId: USER_ID, sender: contactId }),
+                body: JSON.stringify({ userid:USER_ID,chat_id, name,isgroup }),
             });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
+
+            
             const modifiedMessages: Message[] = Array.isArray(data.messages) ? data.messages.map((message: any) => {
-                console.log("Original message from API:", message); // <<< ADD THIS
+                // console.log("Original message from API:", message); // <<< ADD THIS
                 return {
                     id: message.chat_id || `api-msg-<span class="math-inline">\{Date\.now\(\)\}\-</span>{Math.random().toString(36).substr(2, 5)}`,
                     content: message.content,
@@ -551,34 +560,36 @@ const Conversation = () => {
         } else if (selectedContact) {
             return (
                 <div className="space-y-4">
-                    {messages.length > 0 ? messages.map((message) => (
-                        <div
-                            key={message.id}
-                            className={`flex ${message.isSenderMatch ? 'justify-end' : 'justify-start'}`}
-                        >
-                            <div
-                                className={`rounded-lg p-3 max-w-[80%] ${
-                                    message.isSenderMatch
-                                        ? 'bg-green-300/30 text-right'
-                                        : 'bg-muted/10 text-left'
-                                }`}
-                            >
-                                {selectedContact.isGroup && message.sender && (
-                                    <p className="font-semibold text-xs text-muted-foreground">
-                                        {message.sender}
-                                    </p>
-                                )}
-                                <p>{message.content}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {new Date(message.created_at).toLocaleString()}
-                                </p>
-                            </div>
-                        </div>
-                    )) : (
-                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4">
-                            <p>No messages for this contact yet. Start a conversation!</p>
-                        </div>
-                    )}
+                    {messages.length > 0 ? messages.slice(-80).map((message) => (
+    <div
+        key={message.id}
+        className={`flex ${message.isSenderMatch ? 'justify-end' : 'justify-start'}`}
+    >
+        <div
+            className={`rounded-lg p-3 max-w-[80%] ${
+                message.isSenderMatch
+                    ? 'bg-green-300/30 text-right'
+                    : 'bg-muted/10 text-left'
+            }`}
+        >
+            {selectedContact.isGroup && message.sender && (
+                <p className="font-semibold text-xs text-muted-foreground">
+                    {message.sender}
+                </p>
+            )}
+            <p>{message.content}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+                {new Date(message.created_at).toLocaleString()}
+            </p>
+        </div>
+    </div>
+)) : (
+    <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 mt-52">
+        {/* <p>No messages for this contact yet. Start a conversation!</p> */}
+        <Loader></Loader>
+    </div>
+)}
+
                     <div ref={messagesEndRef} />
                 </div>
             );

@@ -1,4 +1,7 @@
+import { useUserCred } from "@/context/usercred";
+
 export default async function query(query: string) {
+  const {userid}=useUserCred()
     const response = await fetch("http://localhost:7860/api/v1/run/8aab738a-51cc-4175-8694-7d4aa96e377b", {
         method: "POST",
         headers: {
@@ -9,7 +12,7 @@ export default async function query(query: string) {
           "input_value":query,
           "input_type": "chat",
           "output_type": "chat",
-           "session_id": "user_2"
+           "session_id": userid
         }),
       });
       const data = await response.json().then((data) => data.outputs[0].outputs[0].outputs.message.message).catch((error) => {

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { supabase } from "@/lib/supabase";
+import { useUserCred } from "@/context/usercred";
 
 interface ServiceConnection {
   name: string;
@@ -19,6 +20,8 @@ interface ServiceConnection {
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
+  const { userid } = useUserCred(); // Move to top level
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [emailDigest, setEmailDigest] = useState(true);
@@ -29,27 +32,42 @@ const Settings = () => {
   useEffect(() => {
     const fetchConnections = async () => {
       try {
+        // Fetch all sources for this user
         const { data: sourceData, error: sourceError } = await supabase
           .from("memory_entries")
           .select("source")
-          .eq("user_id", "00000000-0000-0000-0000-000000000001");
+          .eq("user_id", userid);
 
-        if (sourceError) throw sourceError;
+        if (sourceError) {
+          console.error(sourceError);
+          setIsLoading(false);
+          return;
+        }
 
-        const sources = Array.from(new Set(sourceData?.map(entry => entry.source) || []));
-        setConnectedSources(sources);
+        let sources = Array.from(new Set(sourceData?.map(entry => entry.source) || []));
 
+        // If Gmail accounts exist, fetch them
+        let gmailIds: string[] = [];
         if (sources.includes("gmail")) {
           const { data: gmailData, error: gmailError } = await supabase
             .from("email_auth")
             .select("gmail_id")
-            .eq("user_id", "00000000-0000-0000-0000-000000000001");
+            .eq("user_id", userid);
 
-          if (gmailError) throw gmailError;
-
-          const gmailIds = gmailData?.map(entry => entry.gmail_id) || [];
-          setGmailAccounts(gmailIds);
+          if (gmailError) {
+            console.error(gmailError);
+          } else {
+            gmailIds = gmailData?.map(entry => entry.gmail_id) || [];
+            setGmailAccounts(gmailIds);
+          }
         }
+
+        // If Gmail accounts found, also mark calendar as connected
+        if (gmailIds.length > 0 && !sources.includes("calendar")) {
+          sources = [...sources, "calendar"];
+        }
+
+        setConnectedSources(sources);
       } catch (error) {
         console.error("Error fetching connections:", error);
       } finally {
@@ -57,8 +75,10 @@ const Settings = () => {
       }
     };
 
-    fetchConnections();
-  }, []);
+    if (userid) {
+      fetchConnections();
+    }
+  }, [userid]);
 
   const services: ServiceConnection[] = [
     {
@@ -72,21 +92,23 @@ const Settings = () => {
       connected: gmailAccounts.length > 0,
       accountIds: gmailAccounts,
     },
-    {
-      name: "Twitter",
-      icon: "🐦",
-      connected: connectedSources.includes("twitter"),
-    },
-    {
-      name: "LinkedIn",
-      icon: "👔",
-      connected: connectedSources.includes("linkedin"),
-    },
-    {
+   {
       name: "Google Calendar",
       icon: "📅",
       connected: connectedSources.includes("calendar"),
+      accountIds: gmailAccounts.length > 0 ? gmailAccounts : undefined, // show gmail IDs here also
     },
+
+    // {
+    //   name: "Twitter",
+    //   icon: "🐦",
+    //   connected: connectedSources.includes("twitter"),
+    // },
+    // {
+    //   name: "LinkedIn",
+    //   icon: "👔",
+    //   connected: connectedSources.includes("linkedin"),
+    // },
   ];
 
   return (
@@ -107,7 +129,7 @@ const Settings = () => {
         <TabsContent value="account">
           <div className="grid gap-6">
             <ProfileCard />
-            <PasswordCard />
+            {/* <PasswordCard /> */}
           </div>
         </TabsContent>
 
@@ -175,25 +197,25 @@ const ProfileCard = () => (
   </Card>
 );
 
-const PasswordCard = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Password</CardTitle>
-      <CardDescription>Update your password</CardDescription>
-    </CardHeader>
-    <CardContent className="space-y-4">
-      {["current-password", "new-password", "confirm-password"].map((id, idx) => (
-        <div className="space-y-2" key={id}>
-          <Label htmlFor={id}>
-            {["Current", "New", "Confirm"][idx]} password
-          </Label>
-          <Input id={id} type="password" />
-        </div>
-      ))}
-      <Button className="w-fit">Update password</Button>
-    </CardContent>
-  </Card>
-);
+// const PasswordCard = () => (
+//   <Card>
+//     <CardHeader>
+//       <CardTitle>Password</CardTitle>
+//       <CardDescription>Update your password</CardDescription>
+//     </CardHeader>
+//     <CardContent className="space-y-4">
+//       {["current-password", "new-password", "confirm-password"].map((id, idx) => (
+//         <div className="space-y-2" key={id}>
+//           <Label htmlFor={id}>
+//             {["Current", "New", "Confirm"][idx]} password
+//           </Label>
+//           <Input id={id} type="password" />
+//         </div>
+//       ))}
+//       <Button className="w-fit">Update password</Button>
+//     </CardContent>
+//   </Card>
+// );
 
 const NotificationsCard = ({
   notificationsEnabled,
@@ -368,7 +390,7 @@ const ConnectionsCard = ({
                 {service.connected ? "Connected" : "Not Connected"}
               </Button>
             </div>
-            {service.name === "Gmail" && service.accountIds?.length ? (
+            {(service.name === "Gmail"|| service.name === "Google Calendar") && service.accountIds?.length ? (
               <div className="flex flex-wrap gap-2 pl-8">
                 {service.accountIds.map((id) => (
                   <span

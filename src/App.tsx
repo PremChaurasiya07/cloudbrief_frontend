@@ -40,7 +40,7 @@ const App = () => (
               {/* <Route path="/whatsapp" element={<ProtectedRoute><WhatsApp /></ProtectedRoute>} /> */}
               <Route path="/gmail" element={<ProtectedRoute><Gmail /></ProtectedRoute>} />
               <Route path="/gmail/:id" element={<ProtectedRoute><EmailView /></ProtectedRoute>} />
-              <Route path="/twitter" element={<ProtectedRoute><HybridCalendar /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><HybridCalendar /></ProtectedRoute>} />
               <Route path="/linkedin" element={<ProtectedRoute><LinkedIn /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/:platform/conversation" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />

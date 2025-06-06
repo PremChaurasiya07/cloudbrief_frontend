@@ -5,13 +5,14 @@ import { Card } from "@/components/ui/card";
 import { useSummaryLoading } from "@/context/summaryloading";
 import Summary from "@/langflow/summary";
 import { supabase } from "@/lib/supabase";
+import { useUserCred } from "@/context/usercred";
 
 export function CollapsibleSummary() {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [summary, setSummary] = useState("");
   const { isLoading, setLoading } = useSummaryLoading();
-
-  const USER_ID = "00000000-0000-0000-0000-000000000001"; // Replace with real user ID
+  const {userid}=useUserCred()
+  const USER_ID = userid; // Replace with real user ID
 
   const decodeUnicode = (text: string) => {
     try {
@@ -114,7 +115,7 @@ export function CollapsibleSummary() {
   }
 
   try {
-    const freshSummary = await Summary();
+    const freshSummary = await Summary(userid);
     setSummary(freshSummary);
     await updateSummaryInSupabase(freshSummary);
   } catch (err) {
