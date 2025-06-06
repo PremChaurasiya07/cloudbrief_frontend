@@ -41,8 +41,8 @@ type MessageCategory =
   | "STARRED"
   | "DRAFT"
   | "SENT"
-  | "SOCIAL"
-  | "PROMOTIONS";
+  // | "SOCIAL"
+  // | "PROMOTIONS";
 
 const FETCH_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -69,8 +69,8 @@ const Gmail = () => {
     { name: "Starred", icon: Star, id: "STARRED" as MessageCategory },
     { name: "Drafts", icon: FileText, id: "DRAFT" as MessageCategory },
     { name: "Sent", icon: Send, id: "SENT" as MessageCategory },
-    { name: "Social", icon: Users, id: "SOCIAL" as MessageCategory },
-    { name: "Promotions", icon: Tag, id: "PROMOTIONS" as MessageCategory },
+    // { name: "Social", icon: Users, id: "SOCIAL" as MessageCategory },
+    // { name: "Promotions", icon: Tag, id: "PROMOTIONS" as MessageCategory },
   ];
 console.log("selected:",selectedCategory)
   const currentCategory =
