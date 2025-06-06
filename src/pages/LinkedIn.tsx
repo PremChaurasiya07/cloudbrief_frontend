@@ -39,6 +39,6 @@ const LinkedIn = () => {
       icon={<Linkedin size={20} />} 
     />
   );
-};
+}
 
 export default LinkedIn;

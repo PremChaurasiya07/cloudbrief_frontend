@@ -43,7 +43,7 @@ export function Sidebar() {
         onMouseLeave={() => setCollapsed(true)}
         className={cn(
           "h-screen flex flex-col border-r z-10 transition-all duration-450 ease-out",
-          collapsed ? "w-16" : "w-32",
+          collapsed ? "w-16" : "w-20",
           isDark ? "bg-[#121216] border-[#1f2937]" : "bg-white border-gray-200" // ✅ Theme-sensitive colors
         )}
       >
@@ -52,11 +52,11 @@ export function Sidebar() {
           {!collapsed && (
             <div
               className={cn(
-                "font-bold text-lg transition-colors duration-300",
+                "font-bold text-lg transition-colors duration-300 italic ",
                 isDark ? "text-white" : "text-gray-900" // ✅ Theme-aware text
               )}
             >
-              CloudBrief
+              Brief
             </div>
           )}
           {collapsed && <div className="w-8" />}

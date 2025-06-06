@@ -94,7 +94,7 @@ export function MessageTimeline({
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/gmail/delete", {
+      const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/delete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -135,7 +135,7 @@ export function MessageTimeline({
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/gmail/deletedraft", {
+      const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/deletedraft`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

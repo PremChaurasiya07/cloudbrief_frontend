@@ -90,7 +90,7 @@ const ComposeEmailModal = ({
             return;
         }
 
-        const result = await fetch("http://localhost:3000/api/auth/gmail/compose", {
+        const result = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/compose`, {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
@@ -136,7 +136,7 @@ const ComposeEmailModal = ({
       return;
     }
 
-    const result = await fetch("http://localhost:3000/api/auth/gmail/send", {
+    const result = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/send`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -160,7 +160,7 @@ const ComposeEmailModal = ({
     if (!botQuery) return;
     setLoadingBot(true);
 
-    const res = await fetch("http://localhost:3000/api/auth/gmail/send/bot", {
+    const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/send/bot`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: botQuery, subject, body }),

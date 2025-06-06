@@ -124,7 +124,7 @@ console.log("selected:",selectedCategory)
   const All_mail=async()=>{
     setLoading(true)
     try{
-        const res = await fetch("http://localhost:3000/api/auth/gmail/getallmail", {
+        const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/getallmail`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -187,7 +187,7 @@ console.log("selected:",selectedCategory)
   setError(null);
 
   try {
-    const response = await fetch("http://localhost:3000/api/auth/gmail/fetchdraft", {
+    const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/fetchdraft`, {
       method: 'POST',
       headers: {
         "content-type": "application/json"
@@ -244,7 +244,7 @@ console.log("selected:",selectedCategory)
   const refreshAccessToken = async (refreshToken: string) => {
     try {
       const response = await fetch(
-        "http://localhost:3000/api/auth/gmail/refresh",
+        `${import.meta.env.VITE_URL}/api/auth/gmail/refresh`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -328,7 +328,7 @@ console.log("selected:",selectedCategory)
       if (Date.now() - lastFetchTime > FETCH_CACHE_DURATION) {
         console.log(`Fetching new messages from Gmail API for ${currentAccount.gmail_id}`);
         const fetchRes = await fetch(
-          "http://localhost:3000/api/auth/gmail/fetch",
+          `${import.meta.env.VITE_URL}/api/auth/gmail/fetch`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -353,7 +353,7 @@ console.log("selected:",selectedCategory)
       
       // Fetch messages from your backend (which should now have the latest from Gmail)
       console.log(`Getting messages from backend for ${currentAccount.gmail_id}, category ${selectedCategory}`);
-      const res = await fetch("http://localhost:3000/api/auth/gmail/getmails", {
+      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/gmail/getmails`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

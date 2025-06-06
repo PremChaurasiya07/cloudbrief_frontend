@@ -59,7 +59,7 @@ export default function CalendarPage() {
     if (!email) return;
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/auth/calender/fetch`, {
+      const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/calender/fetch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, gmail: email }),
@@ -145,7 +145,7 @@ export default function CalendarPage() {
     setLoading(true);
     try {
       // Make sure to include eventId in the request body
-      const res = await fetch(`http://localhost:3000/api/auth/calender/edit`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/calender/edit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -197,7 +197,7 @@ export default function CalendarPage() {
   
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/auth/calender/${endpoint}`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/calender/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(finalPayload),
@@ -218,7 +218,7 @@ export default function CalendarPage() {
     if (!selectedEvent) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/auth/calender/delete`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/calender/delete`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, gmail: selectedEmail, eventId: selectedEvent.id }),

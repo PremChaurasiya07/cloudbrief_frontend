@@ -34,4 +34,4 @@ const Twitter = () => {
   return <MessageTimeline messages={messages} title="Twitter" icon={<TwitterIcon size={20} />} />;
 };
 
-export default Twitter;
+export default Twitter

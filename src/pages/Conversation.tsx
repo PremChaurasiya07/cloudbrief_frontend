@@ -346,7 +346,7 @@ const Conversation = () => {
             return;
         }
         try {
-            const response = await fetch(`${API_BASE_URL}/baileys/getcontacts/fetch_chats`, {
+            const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/baileys/getcontacts/fetch_chats`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -383,7 +383,7 @@ const Conversation = () => {
             return;
         }
         try {
-            const response = await fetch(`${API_BASE_URL}/baileys/getprofile`, {
+            const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/baileys/getprofile`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ userId: USER_ID, jid: contactId }),
@@ -440,7 +440,7 @@ const Conversation = () => {
         setMessages((prev) => [...prev, optimisticMessage]);
         setNewMessage('');
         try {
-            const response = await fetch(`${API_BASE_URL}/baileys/sendmessage`, {
+            const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/baileys/sendmessage`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
