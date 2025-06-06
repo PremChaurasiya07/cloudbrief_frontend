@@ -17,11 +17,11 @@ export const saveEncryptedUserId = (userId: string, ttlMinutes = 60) => {
   const encrypted = CryptoJS.AES.encrypt(payload, key, { iv }).ciphertext;
 
   const combined = iv.concat(encrypted).toString(CryptoJS.enc.Base64);
-  sessionStorage.setItem(STORAGE_KEY, combined);
+  localStorage.setItem(STORAGE_KEY, combined);
 };
 
 export const getDecryptedUserId = (): string | null => {
-  const combined = sessionStorage.getItem(STORAGE_KEY);
+  const combined = localStorage.getItem(STORAGE_KEY);
   if (!combined) return null;
 
   try {
